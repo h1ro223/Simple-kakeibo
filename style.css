@@ -297,6 +297,8 @@ input[type="month"],
 select,
 textarea {
     width: 100%;
+    display: block;
+    box-sizing: border-box;
     padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid var(--border);
@@ -305,6 +307,13 @@ textarea {
     font-size: 0.95rem;
     font-family: inherit;
     transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Safari向けの追加調整 */
+input[type="date"],
+input[type="month"] {
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 input:focus,
