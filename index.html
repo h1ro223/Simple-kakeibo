@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家計簿アプリ</title>
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121826">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="./style.css">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- ヘッダー -->
+        <header>
+            <h1><i class="fa-solid fa-wallet"></i> 家計簿</h1>
+            <button id="themeToggleBtn" class="icon-btn" aria-label="テーマ切り替え">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </header>
+
+        <!-- ナビゲーション -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-target="home">
+                <i class="fa-solid fa-house"></i>
+                <span>ホーム</span>
+            </button>
+            <button class="nav-btn" data-target="history">
+                <i class="fa-solid fa-list-ul"></i>
+                <span>履歴</span>
+            </button>
+            <button class="nav-btn btn-add" data-target="add">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+            <button class="nav-btn" data-target="settings">
+                <i class="fa-solid fa-gear"></i>
+                <span>設定</span>
+            </button>
+        </nav>
+
+        <!-- メインコンテンツ -->
+        <main>
+            <!-- ホーム画面 -->
+            <section id="home" class="page active">
+                <div class="summary-card">
+                    <h2 class="month-title" id="currentMonthTitle">2023年10月</h2>
+                    <div class="summary-grid">
+                        <div class="summary-item income">
+                            <span class="label">収入</span>
+                            <span class="amount" id="summaryIncome">0円</span>
+                        </div>
+                        <div class="summary-item expense">
+                            <span class="label">支出</span>
+                            <span class="amount" id="summaryExpense">0円</span>
+                        </div>
+                    </div>
+                    <div class="summary-total">
+                        <span class="label">収支</span>
+                        <span class="amount" id="summaryTotal">0円</span>
+                    </div>
+                </div>
+
+                <div class="chart-container card">
+                    <h3>用途別支出割合</h3>
+                    <div class="canvas-wrapper pie-wrapper">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container card">
+                    <h3>月別収支推移 (過去12ヶ月)</h3>
+                    <div class="canvas-wrapper bar-wrapper">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 履歴一覧画面 -->
+            <section id="history" class="page">
+                <div class="filter-card card">
+                    <div class="filter-group">
+                        <label for="filterMonth">月</label>
+                        <input type="month" id="filterMonth">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterType">区分</label>
+                        <select id="filterType">
+                            <option value="all">すべて</option>
+                            <option value="expense">支出</option>
+                            <option value="income">収入</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterCategory">用途</label>
+                        <select id="filterCategory">
+                            <option value="all">すべて</option>
+                            <!-- JavaScriptで動的生成 -->
+                        </select>
+                    </div>
+                    <button id="resetFilterBtn" class="btn btn-outline">リセット</button>
+                </div>
+
+                <div class="history-list" id="historyList">
+                    <!-- 履歴アイテムがここに追加されます -->
+                </div>
+            </section>
+
+            <!-- 登録・編集画面 -->
+            <section id="add" class="page">
+                <div class="card">
+                    <h2 id="formTitle">記録を追加</h2>
+                    <form id="recordForm">
+                        <input type="hidden" id="recordId">
+                        <div class="form-group">
+                            <label for="recordDate">日付 <span class="required">*</span></label>
+                            <input type="date" id="recordDate" required>
+                        </div>
+                        
+                        <div class="form-group type-toggle">
+                            <input type="radio" id="typeExpense" name="recordType" value="expense" checked>
+                            <label for="typeExpense" class="toggle-btn expense-btn">支出</label>
+                            
+                            <input type="radio" id="typeIncome" name="recordType" value="income">
+                            <label for="typeIncome" class="toggle-btn income-btn">収入</label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recordAmount">金額 <span class="required">*</span></label>
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-yen-sign"></i>
+                                <input type="number" id="recordAmount" min="0" required placeholder="0">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recordCategory">用途 <span class="required">*</span></label>
+                            <select id="recordCategory" required>
+                                <!-- JavaScriptで動的生成 -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recordMemo">メモ</label>
+                            <textarea id="recordMemo" rows="3" placeholder="任意"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-block">保存する</button>
+                            <button type="button" id="cancelEditBtn" class="btn btn-outline btn-block" style="display: none;">キャンセル</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- 設定画面 -->
+            <section id="settings" class="page">
+                <div class="card">
+                    <h2>データ管理</h2>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>バックアップ (エクスポート)</h3>
+                            <p>データをJSONファイルとしてダウンロードします。</p>
+                        </div>
+                        <button id="exportBtn" class="btn btn-primary"><i class="fa-solid fa-download"></i> エクスポート</button>
+                    </div>
+                    
+                    <div class="setting-item mt-4">
+                        <div class="setting-info">
+                            <h3>復元 (インポート)</h3>
+                            <p>JSONファイルからデータを復元します。</p>
+                        </div>
+                        <input type="file" id="importFile" accept=".json" style="display: none;">
+                        <button id="importBtn" class="btn btn-outline"><i class="fa-solid fa-upload"></i> インポート</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- フッター -->
+        <footer>
+            <p>made by hiro/ヒロ</p>
+            <p>GitHub: <a href="https://github.com/h1ro223" target="_blank" rel="noopener noreferrer">https://github.com/h1ro223</a></p>
+        </footer>
+    </div>
+
+    <!-- トースト通知 -->
+    <div id="toast" class="toast"></div>
+
+    <script src="./script.js"></script>
+</body>
+</html>
