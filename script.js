@@ -129,6 +129,24 @@ function setupEventListeners() {
     // 今月をフィルターのデフォルトに
     const today = new Date();
     document.getElementById('filterMonth').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+    // ログインモーダル関連 (モックアップ)
+    const loginModal = document.getElementById('loginModal');
+    document.getElementById('accountBtn').addEventListener('click', () => {
+        loginModal.classList.add('show');
+    });
+    document.getElementById('closeLoginModal').addEventListener('click', () => {
+        loginModal.classList.remove('show');
+    });
+    loginModal.addEventListener('click', (e) => {
+        if (e.target === loginModal) {
+            loginModal.classList.remove('show');
+        }
+    });
+    document.getElementById('mockLoginBtn').addEventListener('click', () => {
+        loginModal.classList.remove('show');
+        showToast('ログイン機能は準備中です（Firebase移行時に実装します）');
+    });
 }
 
 function switchPage(pageId) {

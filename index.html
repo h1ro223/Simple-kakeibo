@@ -22,9 +22,14 @@
         <!-- ヘッダー -->
         <header>
             <h1><i class="fa-solid fa-wallet"></i> 家計簿</h1>
-            <button id="themeToggleBtn" class="icon-btn" aria-label="テーマ切り替え">
-                <i class="fa-solid fa-moon"></i>
-            </button>
+            <div class="header-actions">
+                <button id="themeToggleBtn" class="icon-btn" aria-label="テーマ切り替え">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <button id="accountBtn" class="icon-btn" aria-label="アカウント">
+                    <i class="fa-solid fa-circle-user"></i>
+                </button>
+            </div>
         </header>
 
         <!-- ナビゲーション -->
@@ -193,6 +198,34 @@
 
     <!-- トースト通知 -->
     <div id="toast" class="toast"></div>
+
+    <!-- ログインモーダル (モックアップ) -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content card">
+            <button class="close-modal icon-btn" id="closeLoginModal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <h2>ログイン</h2>
+                <p>Firebase連携時に実装予定です</p>
+            </div>
+            <form id="mockLoginForm" class="mock-login-form">
+                <div class="form-group">
+                    <label for="mockUsername">ユーザー名</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="mockUsername" placeholder="ユーザー名を入力">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="mockPassword">パスワード</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="mockPassword" placeholder="パスワードを入力">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary btn-block" id="mockLoginBtn">ログイン (準備中)</button>
+            </form>
+        </div>
+    </div>
 
     <script src="./script.js"></script>
 </body>
