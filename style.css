@@ -481,6 +481,8 @@ input:focus, select:focus, textarea:focus {
     padding: 6px 8px;
     font-size: 0.85rem;
     border-radius: 8px;
+    height: 34px;
+    line-height: 1.2;
 }
 
 .filter-card button {
