@@ -60,7 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
             accountBtnIcon.style.color = 'var(--income)';
             authForm.style.display = 'none';
             loggedInMenu.style.display = 'block';
-            currentUserEmail.textContent = user.email;
+            
+            // ダミードメインを取り除いてユーザー名だけを表示
+            const displayUser = user.email.split('@')[0];
+            currentUserEmail.textContent = displayUser;
+            
             modalTitle.textContent = 'アカウント情報';
             modalDesc.textContent = '同期設定は有効です';
             
@@ -213,30 +217,46 @@ function setupEventListeners() {
         if (e.target === loginModal) loginModal.classList.remove('show');
     });
 
+    // ユーザー名をFirebase用メールアドレスに変換するヘルパー
+    const getDummyEmail = (username) => `${username}@kakeibo.local`;
+
     // ログイン処理
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('authEmail').value;
+        const username = document.getElementById('authUsername').value;
         const password = document.getElementById('authPassword').value;
+        
+        if (!/^[a-zA-Z0-9]{1,8}$/.test(username)) {
+            showToast('ユーザー名は半角英数字8文字以内で入力してください');
+            return;
+        }
+
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            await signInWithEmailAndPassword(auth, getDummyEmail(username), password);
             loginModal.classList.remove('show');
             showToast('ログインしました');
         } catch (error) {
-            showToast('ログイン失敗: メールアドレスまたはパスワードが違います');
+            showToast('ログイン失敗: ユーザー名またはパスワードが違います');
         }
     });
 
     // 新規登録処理
     document.getElementById('registerBtn').addEventListener('click', async () => {
-        const email = document.getElementById('authEmail').value;
+        const username = document.getElementById('authUsername').value;
         const password = document.getElementById('authPassword').value;
-        if (!email || !password) {
-            showToast('メールアドレスとパスワードを入力してください');
+        
+        if (!username || !password) {
+            showToast('ユーザー名とパスワードを入力してください');
             return;
         }
+
+        if (!/^[a-zA-Z0-9]{1,8}$/.test(username)) {
+            showToast('ユーザー名は半角英数字8文字以内で入力してください');
+            return;
+        }
+
         try {
-            await createUserWithEmailAndPassword(auth, email, password);
+            await createUserWithEmailAndPassword(auth, getDummyEmail(username), password);
             loginModal.classList.remove('show');
             showToast('アカウントを作成しログインしました');
         } catch (error) {
