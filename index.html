@@ -204,35 +204,48 @@
     <!-- トースト通知 -->
     <div id="toast" class="toast"></div>
 
-    <!-- ログインモーダル (モックアップ) -->
+    <!-- ログインモーダル -->
     <div id="loginModal" class="modal">
         <div class="modal-content card">
             <button class="close-modal icon-btn" id="closeLoginModal"><i class="fa-solid fa-xmark"></i></button>
             <div class="modal-header">
-                <h2>ログイン</h2>
-                <p>Firebase連携時に実装予定です</p>
+                <h2 id="modalTitle">アカウント</h2>
+                <p id="modalDesc">ログインしてデータを同期します</p>
             </div>
-            <form id="mockLoginForm" class="mock-login-form">
+            
+            <!-- ログイン / 新規登録フォーム -->
+            <form id="authForm" class="mock-login-form">
                 <div class="form-group">
-                    <label for="mockUsername">ユーザー名</label>
+                    <label for="authEmail">メールアドレス</label>
                     <div class="input-with-icon">
-                        <i class="fa-solid fa-user"></i>
-                        <input type="text" id="mockUsername" placeholder="ユーザー名を入力">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="email" id="authEmail" placeholder="メールアドレスを入力" required>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="mockPassword">パスワード</label>
+                    <label for="authPassword">パスワード</label>
                     <div class="input-with-icon">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="mockPassword" placeholder="パスワードを入力">
+                        <input type="password" id="authPassword" placeholder="6文字以上" required>
                     </div>
                 </div>
-                <button type="button" class="btn btn-primary btn-block" id="mockLoginBtn">ログイン (準備中)</button>
+                
+                <div class="form-actions" style="margin-top: 16px;">
+                    <button type="submit" class="btn btn-primary btn-block" id="loginBtn">ログイン</button>
+                    <button type="button" class="btn btn-outline btn-block" id="registerBtn" style="margin-top: 8px;">新規登録</button>
+                </div>
             </form>
+
+            <!-- ログイン済みメニュー -->
+            <div id="loggedInMenu" style="display: none; text-align: center;">
+                <p style="margin-bottom: 8px; color: var(--text-main);">現在ログイン中です</p>
+                <p id="currentUserEmail" style="margin-bottom: 24px; font-weight: bold; color: var(--primary);"></p>
+                <button type="button" class="btn btn-outline btn-block" id="logoutBtn" style="color: var(--expense); border-color: var(--expense);">ログアウト</button>
+            </div>
         </div>
     </div>
 
-    <script src="./script.js"></script>
+    <script type="module" src="./script.js"></script>
 </body>
 
 </html>
