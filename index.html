@@ -79,6 +79,30 @@
                     </div>
                 </div>
 
+                <!-- 予算メーター -->
+                <div class="card" id="budgetCard" style="display: none;">
+                    <h3 style="font-size: 0.95rem; margin-bottom: 8px; color: var(--text-muted);">今月の予算</h3>
+                    <div class="progress-info">
+                        <span id="budgetRemainingLabel" style="font-weight:bold;">残り: 0円</span>
+                        <span id="budgetTotalLabel" style="font-size:0.8rem; color:var(--text-muted);">/ 0円</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="budgetProgressBar" class="progress-bar"></div>
+                    </div>
+                </div>
+
+                <!-- 目標達成メーター -->
+                <div class="card" id="goalCard" style="display: none;">
+                    <h3 id="goalNameLabel" style="font-size: 0.95rem; margin-bottom: 8px; color: var(--text-muted);">貯金目標</h3>
+                    <div class="progress-info">
+                        <span id="goalCurrentLabel" style="font-weight:bold; color:var(--primary);">0円</span>
+                        <span id="goalTotalLabel" style="font-size:0.8rem; color:var(--text-muted);">/ 0円</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="goalProgressBar" class="progress-bar goal-bar"></div>
+                    </div>
+                </div>
+
                 <div class="chart-container card">
                     <h3>用途別支出割合</h3>
                     <div class="canvas-wrapper pie-wrapper">
@@ -122,6 +146,13 @@
             <!-- 履歴一覧画面 -->
             <section id="history" class="page">
                 <div class="filter-card card">
+                    <div class="filter-group" style="grid-column: span 2;">
+                        <label for="searchKeyword">キーワード検索</label>
+                        <div class="input-with-icon" style="margin-bottom: 0;">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="searchKeyword" placeholder="メモや用途で検索">
+                        </div>
+                    </div>
                     <div class="filter-group">
                         <label for="filterMonth">月</label>
                         <input type="month" id="filterMonth">
@@ -151,6 +182,13 @@
 
             <!-- 登録・編集画面 -->
             <section id="add" class="page">
+                <div class="card" id="quickInputContainer" style="display: none; padding: 12px 16px;">
+                    <h3 style="font-size: 0.85rem; margin-bottom: 8px; color: var(--text-muted);">クイック入力</h3>
+                    <div class="quick-input-scroll" id="quickInputList">
+                        <!-- JS生成 -->
+                    </div>
+                </div>
+
                 <div class="card">
                     <h2 id="formTitle">記録を追加</h2>
                     <form id="recordForm">
@@ -208,6 +246,38 @@
                         </div>
                         <button id="openSubModalBtn" class="btn btn-primary"><i class="fa-solid fa-rotate"></i>
                             設定する</button>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <h2>追加機能設定</h2>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>用途（カテゴリー）編集</h3>
+                            <p>記録時に選べる用途を追加・削除します。</p>
+                        </div>
+                        <button id="openCategoryModalBtn" class="btn btn-outline"><i class="fa-solid fa-tags"></i> 編集する</button>
+                    </div>
+                    <div class="setting-item mt-4">
+                        <div class="setting-info">
+                            <h3>今月の予算設定</h3>
+                            <p>ホーム画面に予算の残り目安を表示します。</p>
+                        </div>
+                        <button id="openBudgetModalBtn" class="btn btn-outline"><i class="fa-solid fa-coins"></i> 設定する</button>
+                    </div>
+                    <div class="setting-item mt-4">
+                        <div class="setting-info">
+                            <h3>貯金目標メーター設定</h3>
+                            <p>欲しいものなどの目標を設定し、進捗を表示します。</p>
+                        </div>
+                        <button id="openGoalModalBtn" class="btn btn-outline"><i class="fa-solid fa-flag"></i> 設定する</button>
+                    </div>
+                    <div class="setting-item mt-4">
+                        <div class="setting-info">
+                            <h3>クイック入力テンプレート</h3>
+                            <p>よく入力する内容をワンタップで入力できるようにします。</p>
+                        </div>
+                        <button id="openTemplateModalBtn" class="btn btn-outline"><i class="fa-solid fa-bolt"></i> 編集する</button>
                     </div>
                 </div>
 
@@ -319,6 +389,96 @@
                     <!-- サブスク一覧がJSで生成されます -->
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- カテゴリー管理モーダル -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content card" style="max-height: 90vh; display: flex; flex-direction: column;">
+            <button class="close-modal icon-btn" id="closeCategoryModal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <h2>用途の編集</h2>
+            </div>
+            <div class="form-group type-toggle" style="margin-bottom: 16px;">
+                <input type="radio" id="catTypeExpense" name="catType" value="expense" checked>
+                <label for="catTypeExpense" class="toggle-btn expense-btn">支出</label>
+                <input type="radio" id="catTypeIncome" name="catType" value="income">
+                <label for="catTypeIncome" class="toggle-btn income-btn">収入</label>
+            </div>
+            <form id="addCategoryForm" class="mb-4" style="display:flex; gap:8px;">
+                <input type="text" id="newCategoryName" placeholder="新しい用途名" required style="flex:1;">
+                <button type="submit" class="btn btn-primary" style="padding: 10px;">追加</button>
+            </form>
+            <div class="history-list" id="categoryList" style="overflow-y: auto; flex: 1;"></div>
+        </div>
+    </div>
+
+    <!-- 予算設定モーダル -->
+    <div id="budgetModal" class="modal">
+        <div class="modal-content card">
+            <button class="close-modal icon-btn" id="closeBudgetModal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <h2>今月の予算</h2>
+            </div>
+            <form id="budgetForm">
+                <div class="form-group">
+                    <label>月の予算金額 (円)</label>
+                    <input type="number" id="budgetInput" min="0" placeholder="例: 50000">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">保存</button>
+                <button type="button" id="clearBudgetBtn" class="btn btn-outline btn-block" style="margin-top: 8px;">未設定にする</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 目標設定モーダル -->
+    <div id="goalModal" class="modal">
+        <div class="modal-content card">
+            <button class="close-modal icon-btn" id="closeGoalModal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <h2>貯金目標</h2>
+            </div>
+            <form id="goalForm">
+                <div class="form-group">
+                    <label>目標の名前</label>
+                    <input type="text" id="goalNameInput" placeholder="例: PS5購入">
+                </div>
+                <div class="form-group">
+                    <label>目標金額 (円)</label>
+                    <input type="number" id="goalAmountInput" min="0" placeholder="例: 60000">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">保存</button>
+                <button type="button" id="clearGoalBtn" class="btn btn-outline btn-block" style="margin-top: 8px;">未設定にする</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- テンプレート管理モーダル -->
+    <div id="templateModal" class="modal">
+        <div class="modal-content card" style="max-height: 90vh; display: flex; flex-direction: column;">
+            <button class="close-modal icon-btn" id="closeTemplateModal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <h2>テンプレート管理</h2>
+            </div>
+            <form id="templateForm" class="mb-4">
+                <div class="form-group type-toggle" style="margin-bottom: 12px;">
+                    <input type="radio" id="tplTypeExpense" name="tplType" value="expense" checked>
+                    <label for="tplTypeExpense" class="toggle-btn expense-btn">支出</label>
+                    <input type="radio" id="tplTypeIncome" name="tplType" value="income">
+                    <label for="tplTypeIncome" class="toggle-btn income-btn">収入</label>
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <input type="text" id="tplName" placeholder="ボタン名 (例: 自販機)" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <input type="number" id="tplAmount" placeholder="金額" min="0" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <select id="tplCategory" required></select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">追加</button>
+            </form>
+            <div class="history-list" id="templateList" style="overflow-y: auto; flex: 1;"></div>
         </div>
     </div>
 

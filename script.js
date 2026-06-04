@@ -25,10 +25,18 @@ enableIndexedDbPersistence(db).catch((err) => {
 const STORAGE_KEY = 'kakeibo_data';
 const THEME_KEY = 'kakeibo_theme';
 
-const CATEGORIES = {
+let CATEGORIES = {
     expense: ['食費', '日用品', '交通費', '娯楽', 'ゲーム', '医療費', '固定費', 'その他'],
     income: ['給料', '副収入', 'その他']
 };
+
+let userSettings = {
+    monthlyBudget: 0,
+    savingsGoal: { name: '', amount: 0 }
+};
+let templates = [];
+let unsubscribeSettings = null;
+let unsubscribeTemplates = null;
 
 let records = [];
 let subscriptions = [];
@@ -105,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
             migrateLocalDataToFirestore();
             loadDataFromFirestore();
             loadSubscriptionsFromFirestore();
+            loadSettingsFromFirestore();
+            loadTemplatesFromFirestore();
         } else {
             accountBtnIcon.style.color = '';
             authForm.style.display = 'block';
@@ -114,10 +124,20 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (unsubscribeSnapshot) unsubscribeSnapshot();
             if (unsubscribeSubSnapshot) unsubscribeSubSnapshot();
+            if (unsubscribeSettings) unsubscribeSettings();
+            if (unsubscribeTemplates) unsubscribeTemplates();
             unsubscribeSnapshot = null;
             unsubscribeSubSnapshot = null;
+            unsubscribeSettings = null;
+            unsubscribeTemplates = null;
             records = [];
             subscriptions = [];
+            templates = [];
+            userSettings = { monthlyBudget: 0, savingsGoal: { name: '', amount: 0 } };
+            CATEGORIES = {
+                expense: ['食費', '日用品', '交通費', '娯楽', 'ゲーム', '医療費', '固定費', 'その他'],
+                income: ['給料', '副収入', 'その他']
+            };
             updateUI();
         }
     });
@@ -168,6 +188,37 @@ function loadSubscriptionsFromFirestore() {
         subscriptions = newSubs;
         updateUI();
         renderSubList();
+    });
+}
+
+function loadSettingsFromFirestore() {
+    if (!currentUser) return;
+    const docRef = doc(db, 'users', currentUser.uid, 'settings', 'main');
+    if (unsubscribeSettings) unsubscribeSettings();
+    unsubscribeSettings = onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.categories) CATEGORIES = data.categories;
+            userSettings.monthlyBudget = data.monthlyBudget || 0;
+            userSettings.savingsGoal = data.savingsGoal || { name: '', amount: 0 };
+        }
+        updateCategorySelect();
+        updateFilterCategorySelect();
+        if (typeof renderCategoryList === 'function') renderCategoryList();
+        updateUI();
+    });
+}
+
+function loadTemplatesFromFirestore() {
+    if (!currentUser) return;
+    const tplRef = collection(db, 'users', currentUser.uid, 'templates');
+    if (unsubscribeTemplates) unsubscribeTemplates();
+    unsubscribeTemplates = onSnapshot(tplRef, (snapshot) => {
+        const newTpls = [];
+        snapshot.forEach(doc => newTpls.push(doc.data()));
+        templates = newTpls;
+        if (typeof renderTemplateList === 'function') renderTemplateList();
+        if (typeof renderQuickInput === 'function') renderQuickInput();
     });
 }
 
@@ -227,9 +278,12 @@ function setupEventListeners() {
         renderHistory();
     });
     document.getElementById('filterCategory').addEventListener('change', renderHistory);
+    document.getElementById('searchKeyword').addEventListener('input', renderHistory);
     document.getElementById('resetFilterBtn').addEventListener('click', () => {
         document.getElementById('filterMonth').value = '';
         document.getElementById('filterType').value = 'all';
+        document.getElementById('filterCategory').value = 'all';
+        document.getElementById('searchKeyword').value = '';
         updateFilterCategorySelect();
         renderHistory();
     });
@@ -315,6 +369,106 @@ function setupEventListeners() {
     });
     document.getElementById('subForm').addEventListener('submit', handleSubSubmit);
 
+    // 新規モーダル関連 (Category, Budget, Goal, Template)
+    const openModals = [
+        { btn: 'openCategoryModalBtn', modal: 'categoryModal' },
+        { btn: 'openBudgetModalBtn', modal: 'budgetModal' },
+        { btn: 'openGoalModalBtn', modal: 'goalModal' },
+        { btn: 'openTemplateModalBtn', modal: 'templateModal' }
+    ];
+    openModals.forEach(m => {
+        const btn = document.getElementById(m.btn);
+        const modal = document.getElementById(m.modal);
+        if (btn && modal) {
+            btn.addEventListener('click', () => {
+                modal.classList.add('show');
+                if (m.modal === 'categoryModal') renderCategoryList();
+                if (m.modal === 'budgetModal') {
+                    document.getElementById('budgetInput').value = userSettings.monthlyBudget || '';
+                }
+                if (m.modal === 'goalModal') {
+                    document.getElementById('goalNameInput').value = userSettings.savingsGoal?.name || '';
+                    document.getElementById('goalAmountInput').value = userSettings.savingsGoal?.amount || '';
+                }
+                if (m.modal === 'templateModal') {
+                    updateTplCategorySelect();
+                    renderTemplateList();
+                }
+            });
+            document.getElementById(`close${m.modal.charAt(0).toUpperCase() + m.modal.slice(1)}`).addEventListener('click', () => modal.classList.remove('show'));
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('show');
+            });
+        }
+    });
+
+    // カテゴリー追加
+    document.getElementById('addCategoryForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const type = document.querySelector('input[name="catType"]:checked').value;
+        const name = document.getElementById('newCategoryName').value.trim();
+        if (name && !CATEGORIES[type].includes(name)) {
+            CATEGORIES[type].push(name);
+            await saveSettingsToFirestore();
+            document.getElementById('newCategoryName').value = '';
+            renderCategoryList();
+            updateCategorySelect();
+            updateFilterCategorySelect();
+        }
+    });
+
+    // 予算保存
+    document.getElementById('budgetForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        userSettings.monthlyBudget = Number(document.getElementById('budgetInput').value);
+        await saveSettingsToFirestore();
+        document.getElementById('budgetModal').classList.remove('show');
+        showToast('予算を保存しました');
+    });
+    document.getElementById('clearBudgetBtn').addEventListener('click', async () => {
+        userSettings.monthlyBudget = 0;
+        await saveSettingsToFirestore();
+        document.getElementById('budgetModal').classList.remove('show');
+        showToast('予算をクリアしました');
+    });
+
+    // 目標保存
+    document.getElementById('goalForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        userSettings.savingsGoal = {
+            name: document.getElementById('goalNameInput').value.trim(),
+            amount: Number(document.getElementById('goalAmountInput').value)
+        };
+        await saveSettingsToFirestore();
+        document.getElementById('goalModal').classList.remove('show');
+        showToast('目標を保存しました');
+    });
+    document.getElementById('clearGoalBtn').addEventListener('click', async () => {
+        userSettings.savingsGoal = { name: '', amount: 0 };
+        await saveSettingsToFirestore();
+        document.getElementById('goalModal').classList.remove('show');
+        showToast('目標をクリアしました');
+    });
+
+    // テンプレート追加
+    document.getElementById('templateForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentUser) return showToast('ログインが必要です');
+        const type = document.querySelector('input[name="tplType"]:checked').value;
+        const name = document.getElementById('tplName').value.trim();
+        const amount = Number(document.getElementById('tplAmount').value);
+        const category = document.getElementById('tplCategory').value;
+        
+        const tplRef = doc(collection(db, 'users', currentUser.uid, 'templates'));
+        await setDoc(tplRef, { id: tplRef.id, type, name, amount, category });
+        document.getElementById('tplName').value = '';
+        document.getElementById('tplAmount').value = '';
+        showToast('テンプレートを追加しました');
+    });
+    
+    document.getElementById('tplTypeExpense').addEventListener('change', updateTplCategorySelect);
+    document.getElementById('tplTypeIncome').addEventListener('change', updateTplCategorySelect);
+
     updateCategorySelect();
     updateFilterCategorySelect();
 
@@ -365,6 +519,51 @@ function renderHome() {
     totalEl.textContent = `${total > 0 ? '+' : ''}${total.toLocaleString()}円`;
     totalEl.style.color = total >= 0 ? 'var(--income)' : 'var(--expense)';
 
+    // Budget Meter update
+    const budgetCard = document.getElementById('budgetCard');
+    if (userSettings.monthlyBudget > 0) {
+        budgetCard.style.display = 'block';
+        const remaining = userSettings.monthlyBudget - expense;
+        const progress = Math.min((expense / userSettings.monthlyBudget) * 100, 100);
+        document.getElementById('budgetRemainingLabel').textContent = `残り: ${remaining >= 0 ? remaining.toLocaleString() : '0'}円`;
+        document.getElementById('budgetRemainingLabel').style.color = remaining >= 0 ? 'var(--text-main)' : 'var(--expense)';
+        document.getElementById('budgetTotalLabel').textContent = `/ ${userSettings.monthlyBudget.toLocaleString()}円`;
+        const budgetBar = document.getElementById('budgetProgressBar');
+        budgetBar.style.width = `${progress}%`;
+        if (remaining < 0) {
+            budgetBar.classList.add('over-budget');
+        } else {
+            budgetBar.classList.remove('over-budget');
+        }
+    } else {
+        budgetCard.style.display = 'none';
+    }
+
+    // Goal Meter update
+    const goalCard = document.getElementById('goalCard');
+    if (userSettings.savingsGoal && userSettings.savingsGoal.amount > 0) {
+        goalCard.style.display = 'block';
+        
+        let totalAllTimeIncome = 0;
+        let totalAllTimeExpense = 0;
+        allRecs.forEach(r => {
+            if (r.type === 'income') totalAllTimeIncome += Number(r.amount);
+            else totalAllTimeExpense += Number(r.amount);
+        });
+        const currentSavings = totalAllTimeIncome - totalAllTimeExpense;
+        const targetAmount = userSettings.savingsGoal.amount;
+        
+        document.getElementById('goalNameLabel').textContent = `貯金目標: ${userSettings.savingsGoal.name}`;
+        document.getElementById('goalCurrentLabel').textContent = `${currentSavings.toLocaleString()}円`;
+        document.getElementById('goalTotalLabel').textContent = `/ ${targetAmount.toLocaleString()}円`;
+        
+        let goalProgress = Math.max((currentSavings / targetAmount) * 100, 0);
+        goalProgress = Math.min(goalProgress, 100);
+        document.getElementById('goalProgressBar').style.width = `${goalProgress}%`;
+    } else {
+        goalCard.style.display = 'none';
+    }
+
     updateCharts(allRecs);
 }
 
@@ -375,12 +574,20 @@ function renderHistory() {
     const filterMonth = document.getElementById('filterMonth').value;
     const filterType = document.getElementById('filterType').value;
     const filterCategory = document.getElementById('filterCategory').value;
+    const searchInput = document.getElementById('searchKeyword');
+    const searchKeyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
     let filteredRecords = getAllRecords();
 
     if (filterMonth) filteredRecords = filteredRecords.filter(r => r.date.startsWith(filterMonth));
     if (filterType !== 'all') filteredRecords = filteredRecords.filter(r => r.type === filterType);
     if (filterCategory !== 'all') filteredRecords = filteredRecords.filter(r => r.category === filterCategory);
+    if (searchKeyword) {
+        filteredRecords = filteredRecords.filter(r => 
+            r.category.toLowerCase().includes(searchKeyword) || 
+            (r.memo && r.memo.toLowerCase().includes(searchKeyword))
+        );
+    }
 
     if (filteredRecords.length === 0) {
         if (!currentUser) {
@@ -802,6 +1009,120 @@ function drawBarChart(textColor, gridColor, allRecs) {
         }
     });
 }
+
+// --- 追加機能のロジック ---
+async function saveSettingsToFirestore() {
+    if (!currentUser) return;
+    const docRef = doc(db, 'users', currentUser.uid, 'settings', 'main');
+    await setDoc(docRef, {
+        categories: CATEGORIES,
+        monthlyBudget: userSettings.monthlyBudget,
+        savingsGoal: userSettings.savingsGoal
+    }, { merge: true });
+}
+
+window.renderCategoryList = function() {
+    const list = document.getElementById('categoryList');
+    if (!list) return;
+    list.innerHTML = '';
+    const type = document.querySelector('input[name="catType"]:checked').value;
+    CATEGORIES[type].forEach(cat => {
+        const div = document.createElement('div');
+        div.className = `history-item is-${type}`;
+        div.innerHTML = `
+            <div class="history-info"><div class="history-cat">${cat}</div></div>
+            <div class="history-actions">
+                <button type="button" class="action-btn delete" onclick="deleteCategory('${type}', '${cat}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+};
+
+window.deleteCategory = async function(type, cat) {
+    if (confirm(`用途「${cat}」を削除しますか？`)) {
+        CATEGORIES[type] = CATEGORIES[type].filter(c => c !== cat);
+        await saveSettingsToFirestore();
+        renderCategoryList();
+        updateCategorySelect();
+        updateFilterCategorySelect();
+    }
+};
+
+window.renderTemplateList = function() {
+    const list = document.getElementById('templateList');
+    if (!list) return;
+    list.innerHTML = '';
+    const type = document.querySelector('input[name="tplType"]:checked').value;
+    templates.filter(t => t.type === type).forEach(t => {
+        const div = document.createElement('div');
+        div.className = `history-item is-${type}`;
+        div.innerHTML = `
+            <div class="history-info">
+                <div class="history-cat">${t.name}</div>
+                <div class="history-meta"><span>${t.category}</span></div>
+            </div>
+            <div class="history-amount">${Number(t.amount).toLocaleString()}円</div>
+            <div class="history-actions">
+                <button type="button" class="action-btn delete" onclick="deleteTemplate('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+};
+
+window.deleteTemplate = async function(id) {
+    if (!currentUser) return;
+    if (confirm('テンプレートを削除しますか？')) {
+        await deleteDoc(doc(db, 'users', currentUser.uid, 'templates', id));
+    }
+};
+
+window.updateTplCategorySelect = function() {
+    const type = document.querySelector('input[name="tplType"]:checked').value;
+    const select = document.getElementById('tplCategory');
+    if (!select) return;
+    select.innerHTML = '';
+    CATEGORIES[type].forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        select.appendChild(option);
+    });
+    if(typeof renderTemplateList === 'function') renderTemplateList();
+};
+
+window.renderQuickInput = function() {
+    const container = document.getElementById('quickInputContainer');
+    const list = document.getElementById('quickInputList');
+    if (!container || !list) return;
+    if (templates.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    container.style.display = 'block';
+    list.innerHTML = '';
+    templates.forEach(t => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `quick-btn is-${t.type}`;
+        btn.innerHTML = `<span>${t.name}</span><span class="q-amount">${Number(t.amount).toLocaleString()}</span>`;
+        btn.onclick = () => applyTemplate(t.id);
+        list.appendChild(btn);
+    });
+};
+
+window.applyTemplate = function(id) {
+    const t = templates.find(tpl => tpl.id === id);
+    if (!t) return;
+    
+    document.getElementById(`type${t.type.charAt(0).toUpperCase() + t.type.slice(1)}`).checked = true;
+    updateCategorySelect();
+    
+    document.getElementById('recordAmount').value = t.amount;
+    document.getElementById('recordCategory').value = t.category;
+    document.getElementById('recordMemo').value = t.name;
+};
 
 // --- エクスポート・インポート処理 ---
 function exportData() {

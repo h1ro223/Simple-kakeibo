@@ -822,3 +822,70 @@ button, a, input, select, textarea {
     margin-bottom: 12px;
     color: var(--text-main);
 }
+
+/* --- 追加機能のスタイル --- */
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+.progress-bar-container {
+    width: 100%;
+    height: 12px;
+    background-color: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.progress-bar {
+    height: 100%;
+    background-color: var(--primary);
+    width: 0%;
+    transition: width 0.5s ease-out, background-color 0.3s;
+}
+.progress-bar.over-budget {
+    background-color: var(--expense);
+}
+.progress-bar.goal-bar {
+    background-color: #f59e0b; /* Amber */
+}
+
+/* クイック入力 */
+.quick-input-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+.quick-input-scroll::-webkit-scrollbar {
+    height: 4px;
+}
+.quick-input-scroll::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+.quick-btn {
+    white-space: nowrap;
+    padding: 8px 12px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+.quick-btn:active {
+    background-color: var(--border);
+}
+.quick-btn .q-amount {
+    font-weight: bold;
+    color: var(--expense);
+}
+.quick-btn.is-income .q-amount {
+    color: var(--income);
+}
