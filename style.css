@@ -779,7 +779,6 @@ button, a, input, select, textarea {
     padding: 4px 2px;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: background-color 0.2s;
     overflow: hidden;
 }
 .calendar-day.empty {

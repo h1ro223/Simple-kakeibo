@@ -744,7 +744,7 @@ function drawPieChart(textColor, allRecs) {
         pieChartInstance = new Chart(ctx, {
             type: 'doughnut',
             data: { labels: ['データなし'], datasets: [{ data: [1], backgroundColor: ['#64748b'] }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+            options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
         });
         return;
     }
@@ -752,7 +752,7 @@ function drawPieChart(textColor, allRecs) {
     pieChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: { labels: labels, datasets: [{ data: data, backgroundColor: colors.slice(0, labels.length), borderWidth: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: textColor } } } }
+        options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: textColor } } } }
     });
 }
 
@@ -791,6 +791,7 @@ function drawBarChart(textColor, gridColor, allRecs) {
             ]
         },
         options: {
+            animation: false,
             responsive: true,
             maintainAspectRatio: false,
             scales: {
