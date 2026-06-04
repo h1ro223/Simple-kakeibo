@@ -736,3 +736,81 @@ footer {
     font-size: 0.85rem;
     color: var(--text-muted);
 }
+
+/* ダブルタップズーム防止 */
+button, a, input, select, textarea {
+    touch-action: manipulation;
+}
+
+/* カレンダー画面 */
+.calendar-card {
+    padding: 16px;
+}
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.calendar-header h2 {
+    font-size: 1.2rem;
+    color: var(--primary);
+}
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+}
+.weekday {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--text-muted);
+    padding-bottom: 8px;
+}
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    padding: 4px 2px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.calendar-day.empty {
+    background-color: transparent;
+    cursor: default;
+}
+.calendar-day:active {
+    background-color: var(--border);
+}
+.calendar-day.selected {
+    border: 1px solid var(--primary);
+}
+.calendar-day .day-num {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+.calendar-day .day-income {
+    font-size: 0.65rem;
+    color: var(--income);
+}
+.calendar-day .day-expense {
+    font-size: 0.65rem;
+    color: var(--expense);
+}
+
+.calendar-day-details {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+.calendar-day-details h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    color: var(--text-main);
+}

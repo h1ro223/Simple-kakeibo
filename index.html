@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>家計簿アプリ</title>
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -40,12 +40,16 @@
                 <i class="fa-solid fa-house"></i>
                 <span>ホーム</span>
             </button>
-            <button class="nav-btn" data-target="history">
-                <i class="fa-solid fa-list-ul"></i>
-                <span>履歴</span>
+            <button class="nav-btn" data-target="calendar">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>カレンダー</span>
             </button>
             <button class="nav-btn btn-add" data-target="add">
                 <i class="fa-solid fa-plus"></i>
+            </button>
+            <button class="nav-btn" data-target="history">
+                <i class="fa-solid fa-list-ul"></i>
+                <span>履歴</span>
             </button>
             <button class="nav-btn" data-target="settings">
                 <i class="fa-solid fa-gear"></i>
@@ -86,6 +90,31 @@
                     <h3>月別収支推移 (過去12ヶ月)</h3>
                     <div class="canvas-wrapper bar-wrapper">
                         <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- カレンダー画面 -->
+            <section id="calendar" class="page">
+                <div class="card calendar-card">
+                    <div class="calendar-header">
+                        <button id="prevMonthBtn" class="icon-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                        <h2 id="calendarMonthTitle">2026年6月</h2>
+                        <button id="nextMonthBtn" class="icon-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="weekday">日</div>
+                        <div class="weekday">月</div>
+                        <div class="weekday">火</div>
+                        <div class="weekday">水</div>
+                        <div class="weekday">木</div>
+                        <div class="weekday">金</div>
+                        <div class="weekday">土</div>
+                        <!-- 日付セルがJSでここに生成されます -->
+                    </div>
+                    <div id="calendarDayDetails" class="calendar-day-details" style="display: none;">
+                        <h3 id="calendarSelectedDate">選択した日付</h3>
+                        <div id="calendarDayRecords"></div>
                     </div>
                 </div>
             </section>
@@ -171,6 +200,18 @@
             <!-- 設定画面 -->
             <section id="settings" class="page">
                 <div class="card">
+                    <h2>連携機能</h2>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>サブスク管理</h3>
+                            <p>毎月自動で記録されるサブスクリプションを管理します。</p>
+                        </div>
+                        <button id="openSubModalBtn" class="btn btn-primary"><i class="fa-solid fa-rotate"></i>
+                            設定する</button>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
                     <h2>データ管理</h2>
                     <div class="setting-item">
                         <div class="setting-info">
@@ -241,6 +282,42 @@
                 <p style="margin-bottom: 8px; color: var(--text-main);">現在ログイン中です</p>
                 <p id="currentUserEmail" style="margin-bottom: 24px; font-weight: bold; color: var(--primary);"></p>
                 <button type="button" class="btn btn-outline btn-block" id="logoutBtn" style="color: var(--expense); border-color: var(--expense);">ログアウト</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- サブスク管理モーダル -->
+    <div id="subModal" class="modal">
+        <div class="modal-content card" style="max-height: 90vh; overflow-y: auto;">
+            <button class="close-modal icon-btn" id="closeSubModal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <h2>サブスク管理</h2>
+                <p>自動で追加される支出</p>
+            </div>
+            
+            <form id="subForm" class="mb-4">
+                <div class="form-group">
+                    <label for="subName">サービス名</label>
+                    <input type="text" id="subName" placeholder="例: 動画配信サービス" required>
+                </div>
+                <div class="form-group">
+                    <label for="subAmount">金額 (円)</label>
+                    <input type="number" id="subAmount" placeholder="例: 1000" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="subDay">毎月の引き落とし日</label>
+                    <select id="subDay" required>
+                        <!-- 1~28, 末日 がJSで生成されます -->
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">追加する</button>
+            </form>
+
+            <div class="sub-list-container">
+                <h3>登録済みのサブスク</h3>
+                <div id="subList" class="history-list">
+                    <!-- サブスク一覧がJSで生成されます -->
+                </div>
             </div>
         </div>
     </div>
