@@ -26,7 +26,7 @@ const STORAGE_KEY = 'kakeibo_data';
 const THEME_KEY = 'kakeibo_theme';
 
 const CATEGORIES = {
-    expense: ['食費', '日用品', '交通費', '娯楽', '医療費', '固定費', 'その他'],
+    expense: ['食費', '日用品', '交通費', '娯楽', 'ゲーム', '医療費', '固定費', 'その他'],
     income: ['給料', '副収入', 'その他']
 };
 

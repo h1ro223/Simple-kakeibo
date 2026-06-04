@@ -758,7 +758,7 @@ button, a, input, select, textarea {
 }
 .calendar-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 4px;
     text-align: center;
 }
@@ -769,7 +769,7 @@ button, a, input, select, textarea {
     padding-bottom: 8px;
 }
 .calendar-day {
-    aspect-ratio: 1;
+    min-height: 56px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -780,6 +780,7 @@ button, a, input, select, textarea {
     font-size: 0.9rem;
     cursor: pointer;
     transition: background-color 0.2s;
+    overflow: hidden;
 }
 .calendar-day.empty {
     background-color: transparent;
@@ -796,12 +797,20 @@ button, a, input, select, textarea {
     margin-bottom: 2px;
 }
 .calendar-day .day-income {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     color: var(--income);
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .calendar-day .day-expense {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     color: var(--expense);
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .calendar-day-details {

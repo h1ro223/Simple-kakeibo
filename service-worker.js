@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kakeibo-app-v10';
+const CACHE_NAME = 'kakeibo-app-v12';
 const urlsToCache = [
   './',
   './index.html',
